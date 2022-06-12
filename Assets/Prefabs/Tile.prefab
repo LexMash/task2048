@@ -134,18 +134,6 @@ MonoBehaviour:
   _valueText: {fileID: 5151974831782052377}
   _value: 0
   _backImage: {fileID: 8867027442575709480}
-  _emptyColor: {r: 0.9450981, g: 0.85098046, b: 0.78823537, a: 1}
-  _number2Color: {r: 0.990566, g: 0.7746974, b: 0.630785, a: 1}
-  _number4Color: {r: 0.9921569, g: 0.67058825, b: 0.454902, a: 1}
-  _number8Color: {r: 0.9803922, g: 0.5647059, b: 0.28235295, a: 1}
-  _number16Color: {r: 0.9622642, g: 0.4622112, b: 0.12255252, a: 1}
-  _number32Color: {r: 0.764151, g: 0.31065953, b: 0, a: 1}
-  _number64Color: {r: 0.9056604, g: 0.8424544, b: 0.55108577, a: 1}
-  _number128Color: {r: 0.8490566, g: 0.755785, b: 0.3244037, a: 1}
-  _number256Color: {r: 0.7830189, g: 0.6632838, b: 0.114498034, a: 1}
-  _number512Color: {r: 0.6037736, g: 0.49431756, b: 0, a: 1}
-  _number1024Color: {r: 0.45727122, g: 0.8867924, b: 0.35555357, a: 1}
-  _number2048Color: {r: 0.17260659, g: 0.8962264, b: 0, a: 1}
 --- !u!1 &8002414168263719921
 GameObject:
   m_ObjectHideFlags: 0
@@ -206,7 +194,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.9450981, g: 0.85098046, b: 0.78823537, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

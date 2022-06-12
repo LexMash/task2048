@@ -4,65 +4,67 @@ using Random = UnityEngine.Random;
 
 public class Field
 {
+    public Action<bool> IsWon;
+    public Action<int> ScoreAwarded;
+
     private bool _isMoved;
 
     public int size { get; private set; }
 
     private Tile[,] field;
 
-    public Field(int size, Tile[] tiles)
+    public Field(int size, Tile[] tiles, TileConfig tileConfig)
     {
         this.size = size;
 
         field = new Tile[size, size];
 
-        //перевод из одномерного массива в двумерный
         for (int i = 0, c = 0; i < size; i++)
         {
             for (int j = 0; j < size; j++, c++)
             {
-                if (c == tiles.Length) break ;
                 field[i, j] = tiles[c];
+                field[i, j].SetConfig(tileConfig);
             }
         }
     }
 
     public int GetTileValue(int row, int column)
     {
-        if (OnField(row, column))
+        if (IsOnField(row, column))
         {
             return field[row, column].Value;
         }
         else return -1;
     }
 
-    public void Refill(Field field)
+    public void Refill()
     {
-        for (int row = 0; row < field.size; row++)
+        for (int row = 0; row < size; row++)
         {
-            for (int col = 0; col < field.size; col++)
+            for (int col = 0; col < size; col++)
             {
-                field.SetTileValue(row, col, 0);
+                SetTileValue(row, col, 0);
             }
         }
 
-        field.GetRandomTile(field);
-        field.GetRandomTile(field);
+        GetRandomTile();
+        GetRandomTile();
     }
 
-    public bool CheckField(Field field)
+    public bool CheckField()
     {
-        for (int row = 0; row < field.size; row++)
+        for (int row = 0; row < size; row++)
         {
-            for (int col = 0; col < field.size; col++)
+            for (int col = 0; col < size; col++)
             {
-                if (field.GetTileValue(row, col) == 0)
+                if (GetTileValue(row, col) == 0)
                 {
                     return false;
                 }
 
-                if (field.GetTileValue(row, col) == field.GetTileValue(row, col + 1)
-                    || field.GetTileValue(row, col) == field.GetTileValue(row + 1, col))
+                if (GetTileValue(row, col) == GetTileValue(row, col + 1)
+                    || GetTileValue(row, col) == GetTileValue(row + 1, col))
                 {
                     return false;
                 }
@@ -74,28 +76,28 @@ public class Field
 
     private void SetTileValue(int row, int column, int value)
     {
-        if (OnField(row, column))
+        if (IsOnField(row, column))
         {
             field[row, column].SetValue(value); 
         }
     }
 
-    private bool OnField(int row, int column)
+    private bool IsOnField(int row, int column)
     {
         return row >= 0 && column >= 0 && row < size && column < size;
     }
 
-    private void GetRandomTile(Field field)
+    private void GetRandomTile()
     {
         List<Tile> zeroTiles = new List<Tile>();
 
-        for (int row = 0; row < field.size; row++)
+        for (int row = 0; row < size; row++)
         {
-            for (int col = 0; col < field.size; col++)
+            for (int col = 0; col < size; col++)
             {
-                if (field.GetTileValue(row, col) == 0)
+                if (GetTileValue(row, col) == 0)
                 {
-                    zeroTiles.Add(field.GetTile(row, col));
+                    zeroTiles.Add(GetTile(row, col));
                 }
             }
         }
@@ -107,7 +109,7 @@ public class Field
 
     private Tile GetTile(int row, int column)
     {
-        if (OnField(row, column))
+        if (IsOnField(row, column))
         {
             return field[row, column];
         }
@@ -121,14 +123,14 @@ public class Field
         return random <= 89 ? 2 : 4;
     }
 
-    private void PushAll(Field field,int row, int column, int rowStep, int colStep)
+    private void PushAll(int row, int column, int rowStep, int colStep)
     {
-        if (field.GetTileValue(row, column) > 0)
+        if (GetTileValue(row, column) > 0)
         {
-            while (field.GetTileValue(row + rowStep, column + colStep) == 0)
+            while (GetTileValue(row + rowStep, column + colStep) == 0)
             {
-                field.SetTileValue(row + rowStep, column + colStep, field.GetTileValue(row, column));
-                field.SetTileValue(row, column, 0);
+                SetTileValue(row + rowStep, column + colStep, GetTileValue(row, column));
+                SetTileValue(row, column, 0);
 
                 row += rowStep;
                 column += colStep;
@@ -138,129 +140,124 @@ public class Field
         }
     }
 
-    public Action<bool> IsWon;
-    public Action<int> ScoreAwarded;
-
-    private void Join(Field field,int row, int column, int rowStep, int colStep)
+    private void Join(int row, int column, int rowStep, int colStep)
     {
-        if (field.GetTileValue(row, column) > 0)
+        if (GetTileValue(row, column) > 0)
         {
-            while (field.GetTileValue(row + rowStep, column + colStep) == field.GetTileValue(row, column))
+            while (GetTileValue(row + rowStep, column + colStep) == GetTileValue(row, column))
             {
-                field.SetTileValue(row + rowStep, column + colStep, field.GetTileValue(row, column) * 2);
+                SetTileValue(row + rowStep, column + colStep, GetTileValue(row, column) * 2);
 
-                //начисление очков
-                ScoreAwarded?.Invoke(field.GetTileValue(row + rowStep, column + colStep));
+                ScoreAwarded?.Invoke(GetTileValue(row + rowStep, column + colStep));
                 
-                //проверка на победу
-                if (field.GetTileValue(row + rowStep, column + colStep) == 2048)
+                if (GetTileValue(row + rowStep, column + colStep) == 2048)
                 {
                     IsWon?.Invoke(true);
                 }
 
-                while (field.GetTileValue(row - rowStep, column - colStep) > 0)
+                while (GetTileValue(row - rowStep, column - colStep) > 0)
                 {
-                    field.SetTileValue(row, column, field.GetTileValue(row - rowStep, column - colStep));
+                    SetTileValue(row, column, GetTileValue(row - rowStep, column - colStep));
                     row -= rowStep;
                     column -= colStep;
                 }
 
-                field.SetTileValue(row, column, 0);
+                SetTileValue(row, column, 0);
 
                 _isMoved = true;
             }
         }
     }
 
-    public void MoveUp(Field field)
+    public void MoveUp()
     {
         _isMoved = false;
 
-        for (int col = 0; col < field.size; col++)
+        for (int col = 0; col < size; col++)
         {
-            for (int row = 1; row < field.size; row++)
+            for (int row = 1; row < size; row++)
             {
-                PushAll(field, row, col, -1, 0);
+                PushAll(row, col, -1, 0);
             }
 
-            for (int row = 1; row < field.size; row++)
+            for (int row = 1; row < size; row++)
             {
-                Join(field, row, col, -1, 0);
+                Join(row, col, -1, 0);
             }
         }
 
         if (_isMoved)
         {
-            field.GetRandomTile(field);
+            GetRandomTile();
         }
     }
 
-    public void MoveDown(Field field)
+    public void MoveDown()
     {
         _isMoved = false;
 
-        for (int col = 0; col < field.size; col++)
+        for (int col = 0; col < size; col++)
         {
-            for (int row = field.size - 2; row >= 0; row--)
+            for (int row = size - 2; row >= 0; row--)
             {
-                PushAll(field, row, col, 1, 0);
+                PushAll(row, col, 1, 0);
             }
 
-            for (int row = field.size - 2; row >= 0; row--)
+            for (int row = size - 2; row >= 0; row--)
             {
-                Join(field, row, col, 1, 0);
+                Join(row, col, 1, 0);
             }
         }
 
         if (_isMoved)
         {
-            field.GetRandomTile(field);
+            GetRandomTile();
         }
     }
 
-    public void MoveRight(Field field)
+    public void MoveRight()
     {
         _isMoved = false;
 
-        for (int row = 0; row < field.size; row++)
+        for (int row = 0; row < size; row++)
         {
-            for (int col = field.size - 2; col >= 0; col--)
+            for (int col = size - 2; col >= 0; col--)
             {
-                PushAll(field, row, col, 0, 1);
+                PushAll(row, col, 0, 1);
             }
 
-            for (int col = field.size - 2; col >= 0; col--)
+            for (int col = size - 2; col >= 0; col--)
             {
-                Join(field, row, col, 0, 1);
+                Join(row, col, 0, 1);
             }
         }
 
         if (_isMoved)
         {
-            field.GetRandomTile(field);
+            GetRandomTile();
         }
     }
 
-    public void MoveLeft(Field field)
+    public void MoveLeft()
     {
         _isMoved = false;
 
-        for (int row = 0; row < field.size; row++)
+        for (int row = 0; row < size; row++)
         {
-            for (int col = 1; col < field.size; col++)
+            for (int col = 1; col < size; col++)
             {
-                PushAll(field, row, col, 0, -1);
+                PushAll(row, col, 0, -1);
             }
 
-            for (int col = 1; col < field.size; col++)
+            for (int col = 1; col < size; col++)
             {
-                Join(field, row, col, 0, -1);
+                Join(row, col, 0, -1);
             }
         }
 
         if (_isMoved)
         {
-            field.GetRandomTile(field);
+            GetRandomTile();
         }
     }
 }
